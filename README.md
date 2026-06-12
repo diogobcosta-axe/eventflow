@@ -28,7 +28,7 @@ O **EventFlow** é um sistema completo de gestão de eventos desenvolvido em PHP
 
 ```bash
 # 1. Clonar/extrair o projeto
-git clone https://github.com/grupo/eventflow.git
+git clone https://github.com/diogobcosta-axe/eventflow.git
 cd eventflow
 
 # 2. Criar pastas necessárias
@@ -198,7 +198,7 @@ Relações:
 
 ## 👥 Grupo
 
-- Elemento 1: ...
-- Elemento 2: ...
+- Diogo Costa — nº 050169
+- Gonçalo Coelho — nº 050083
 
 Disciplina: Programação Web · Ano letivo 2025/2026
