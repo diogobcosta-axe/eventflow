@@ -1,0 +1,20 @@
+# Base de dados SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads de utilizadores
+assets/uploads/events/
+
+# PHP
+*.log
+
+# SO
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp

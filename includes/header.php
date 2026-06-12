@@ -1,0 +1,83 @@
+<?php
+// includes/header.php — Cabeçalho HTML e barra de navegação (incluído em todas as páginas)
+if (session_status() === PHP_SESSION_NONE) session_start();
+$flash = getFlash();
+?>
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= e($pageTitle ?? 'EventFlow') ?> | EventFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-inner">
+        <a href="/index.php" class="nav-logo">
+            <span class="logo-icon">🎟️</span>
+            <span class="logo-text">EventFlow</span>
+        </a>
+
+        <div class="nav-links">
+            <a href="/index.php" class="nav-link">Início</a>
+            <a href="/pages/eventos.php" class="nav-link">Eventos</a>
+            <?php if (isOrganizador()): ?>
+            <a href="/pages/criar_evento.php" class="nav-link nav-link--cta">+ Criar Evento</a>
+            <?php endif; ?>
+        </div>
+
+        <div class="nav-auth">
+            <?php if (isLoggedIn()): ?>
+                <span class="user-role user-role--<?= e($_SESSION['user_papel']) ?>"><?= e(ucfirst($_SESSION['user_papel'])) ?></span>
+                <?php if (isOrganizador()): ?>
+                <a href="/pages/meus_eventos.php" class="btn btn--ghost btn--sm">Os meus eventos</a>
+                <?php endif; ?>
+                <?php if (isAdmin()): ?>
+                <a href="/pages/admin.php" class="btn btn--ghost btn--sm">Admin</a>
+                <?php endif; ?>
+                <a href="/pages/minhas_inscricoes.php" class="btn btn--ghost btn--sm">Inscrições</a>
+                <a href="/pages/perfil.php" class="btn btn--ghost btn--sm"><?= e($_SESSION['user_nome']) ?></a>
+                <a href="/pages/logout.php" class="btn btn--ghost btn--sm">Sair</a>
+            <?php else: ?>
+                <a href="/pages/login.php" class="btn btn--ghost">Entrar</a>
+                <a href="/pages/registo.php" class="btn btn--primary">Registar</a>
+            <?php endif; ?>
+        </div>
+
+        <button class="nav-hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+</nav>
+
+<?php if ($flash): ?>
+<div class="flash flash--<?= e($flash['tipo']) ?>" id="flashMsg">
+    <span><?= e($flash['mensagem']) ?></span>
+    <button onclick="this.parentElement.remove()" class="flash__close">×</button>
+</div>
+<?php endif; ?>
+
+<div class="mobile-menu" id="mobileMenu">
+    <a href="/index.php">Início</a>
+    <a href="/pages/eventos.php">Eventos</a>
+    <?php if (isLoggedIn()): ?>
+        <?php if (isOrganizador()): ?>
+        <a href="/pages/criar_evento.php">+ Criar Evento</a>
+        <a href="/pages/meus_eventos.php">Os meus eventos</a>
+        <?php endif; ?>
+        <?php if (isAdmin()): ?>
+        <a href="/pages/admin.php">Administração</a>
+        <?php endif; ?>
+        <a href="/pages/minhas_inscricoes.php">As minhas inscrições</a>
+        <a href="/pages/perfil.php">Perfil</a>
+        <a href="/pages/logout.php">Sair</a>
+    <?php else: ?>
+        <a href="/pages/login.php">Entrar</a>
+        <a href="/pages/registo.php">Registar</a>
+    <?php endif; ?>
+</div>

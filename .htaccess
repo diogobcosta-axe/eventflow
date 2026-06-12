@@ -1,0 +1,34 @@
+# EventFlow - Apache config
+Options -Indexes
+
+# PHP errors only in development
+# php_flag display_errors off
+# php_flag log_errors on
+
+# Custom error pages
+ErrorDocument 404 /errors/404.php
+ErrorDocument 403 /errors/403.php
+ErrorDocument 500 /errors/500.php
+
+# Security headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Protect sensitive files
+<FilesMatch "\.(db|sqlite|log|env)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Rewrite rules
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Redirect trailing slashes
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)/$ /$1 [L,R=301]
+</IfModule>
