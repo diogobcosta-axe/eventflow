@@ -1,10 +1,16 @@
-<?php /** EventFlow - Footer global */ ?>
+<?php
+// includes/footer.php — Rodapé HTML (incluído no final de todas as páginas)
+?>
 <footer class="footer">
     <div class="footer-inner">
+
+        <!-- Coluna da marca/descrição -->
         <div class="footer-brand">
             <div class="footer-logo">🎟️ EventFlow</div>
             <p>Descobre, cria e participa nos melhores eventos em Portugal.</p>
         </div>
+
+        <!-- Coluna de links para eventos por categoria -->
         <div class="footer-links">
             <h4>Eventos</h4>
             <a href="/pages/eventos.php">Descobrir</a>
@@ -12,6 +18,8 @@
             <a href="/pages/eventos.php?categoria=2">Tecnologia</a>
             <a href="/pages/eventos.php?categoria=6">Conferências</a>
         </div>
+
+        <!-- Coluna de links de conta (muda consoante o estado de autenticação) -->
         <div class="footer-links">
             <h4>Conta</h4>
             <?php if (isLoggedIn()): ?>
@@ -23,6 +31,8 @@
             <a href="/pages/registo.php">Registar</a>
             <?php endif; ?>
         </div>
+
+        <!-- Coluna de links para organizadores -->
         <div class="footer-links">
             <h4>Organizar</h4>
             <?php if (isOrganizador()): ?>
@@ -33,11 +43,15 @@
             <?php endif; ?>
         </div>
     </div>
+
+    <!-- Rodapé inferior com copyright -->
     <div class="footer-bottom">
+        <!-- date('Y') devolve o ano atual automaticamente -->
         <p>© <?= date('Y') ?> EventFlow · Feito com ❤️ em Portugal</p>
     </div>
 </footer>
 
+<!-- Carrega o JavaScript principal (menu mobile, flash auto-dismiss, upload preview, AJAX presenças) -->
 <script src="/assets/js/main.js"></script>
 </body>
 </html>
