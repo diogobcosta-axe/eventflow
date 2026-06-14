@@ -32,13 +32,12 @@ $flash = getFlash();
 
         <!-- Logo/nome da aplicação — clique leva à página inicial -->
         <a href="/index.php" class="nav-logo">
-            <span class="logo-icon">🎟️</span>
             <span class="logo-text">EventFlow</span>
         </a>
 
         <!-- Links de navegação centrais (desktop) -->
         <div class="nav-links">
-            <a href="/index.php" class="nav-link">Início</a>
+            <a href="/index.php" class="nav-link">Inicio</a>
             <a href="/pages/eventos.php" class="nav-link">Eventos</a>
             <!-- Só mostra "Criar Evento" para organizadores e admins -->
             <?php if (isOrganizador()): ?>
@@ -63,7 +62,7 @@ $flash = getFlash();
                 <?php endif; ?>
 
                 <!-- Links disponíveis para todos os utilizadores autenticados -->
-                <a href="/pages/minhas_inscricoes.php" class="btn btn--ghost btn--sm">Inscrições</a>
+                <a href="/pages/minhas_inscricoes.php" class="btn btn--ghost btn--sm">Inscricoes</a>
                 <!-- Mostra o nome do utilizador como link para o perfil -->
                 <a href="/pages/perfil.php" class="btn btn--ghost btn--sm"><?= e($_SESSION['user_nome']) ?></a>
                 <a href="/pages/logout.php" class="btn btn--ghost btn--sm">Sair</a>
@@ -86,13 +85,13 @@ $flash = getFlash();
 <div class="flash flash--<?= e($flash['tipo']) ?>" id="flashMsg">
     <span><?= e($flash['mensagem']) ?></span>
     <!-- Botão para fechar manualmente a mensagem -->
-    <button onclick="this.parentElement.remove()" class="flash__close">×</button>
+    <button onclick="this.parentElement.remove()" class="flash__close">x</button>
 </div>
 <?php endif; ?>
 
 <!-- Menu mobile: oculto por defeito, abre com o botão hamburger -->
 <div class="mobile-menu" id="mobileMenu">
-    <a href="/index.php">Início</a>
+    <a href="/index.php">Inicio</a>
     <a href="/pages/eventos.php">Eventos</a>
     <?php if (isLoggedIn()): ?>
         <?php if (isOrganizador()): ?>
@@ -100,9 +99,9 @@ $flash = getFlash();
         <a href="/pages/meus_eventos.php">Os meus eventos</a>
         <?php endif; ?>
         <?php if (isAdmin()): ?>
-        <a href="/pages/admin.php">Administração</a>
+        <a href="/pages/admin.php">Administracao</a>
         <?php endif; ?>
-        <a href="/pages/minhas_inscricoes.php">As minhas inscrições</a>
+        <a href="/pages/minhas_inscricoes.php">As minhas inscricoes</a>
         <a href="/pages/perfil.php">Perfil</a>
         <a href="/pages/logout.php">Sair</a>
     <?php else: ?>

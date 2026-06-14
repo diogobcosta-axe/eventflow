@@ -83,7 +83,7 @@ require_once __DIR__ . '/../includes/header.php';
 
     <!-- Formulário de filtros -->
     <form class="filter-bar" method="GET">
-        <input type="text" name="q" value="<?= e($pesquisa) ?>" placeholder="🔍 Pesquisar...">
+        <input type="text" name="q" value="<?= e($pesquisa) ?>" placeholder="Pesquisar...">
 
         <select name="categoria" onchange="this.form.submit()">
             <option value="">Todas as categorias</option>
@@ -95,9 +95,9 @@ require_once __DIR__ . '/../includes/header.php';
         </select>
 
         <select name="ordem" onchange="this.form.submit()">
-            <option value="data_asc"  <?= $ordem === 'data_asc'  ? 'selected' : '' ?>>📅 Data (mais próximo)</option>
-            <option value="data_desc" <?= $ordem === 'data_desc' ? 'selected' : '' ?>>📅 Data (mais recente)</option>
-            <option value="vagas"     <?= $ordem === 'vagas'     ? 'selected' : '' ?>>💺 Mais vagas</option>
+            <option value="data_asc"  <?= $ordem === 'data_asc'  ? 'selected' : '' ?>>Data (mais proximo)</option>
+            <option value="data_desc" <?= $ordem === 'data_desc' ? 'selected' : '' ?>>Data (mais recente)</option>
+            <option value="vagas"     <?= $ordem === 'vagas'     ? 'selected' : '' ?>>Mais vagas</option>
         </select>
 
         <button type="submit" class="btn btn--primary">Filtrar</button>
@@ -110,7 +110,7 @@ require_once __DIR__ . '/../includes/header.php';
     <!-- Filtros rápidos por categoria -->
     <div class="categories-strip">
         <a href="/pages/eventos.php<?= $pesquisa ? '?q=' . urlencode($pesquisa) : '' ?>"
-           class="cat-pill <?= !$categoria ? 'active' : '' ?>">🌟 Todos</a>
+           class="cat-pill <?= !$categoria ? 'active' : '' ?>">Todos</a>
         <?php foreach ($categorias as $cat): ?>
         <a href="/pages/eventos.php?categoria=<?= $cat['id'] ?><?= $pesquisa ? '&q=' . urlencode($pesquisa) : '' ?>"
            class="cat-pill <?= $categoria == $cat['id'] ? 'active' : '' ?>">
@@ -126,7 +126,6 @@ require_once __DIR__ . '/../includes/header.php';
     <!-- Grelha de eventos -->
     <?php if (empty($eventos)): ?>
     <div class="empty-state">
-        <div class="empty-state__icon">🔍</div>
         <h3>Nenhum evento encontrado</h3>
         <p>Tenta alterar os filtros ou <a href="/pages/eventos.php" style="color:var(--clr-accent)">ver todos os eventos</a>.</p>
     </div>
@@ -141,7 +140,7 @@ require_once __DIR__ . '/../includes/header.php';
                 $vagas_txt   = 'Esgotado';
             } elseif ($percentagem >= 80) {
                 $vagas_class = 'few';
-                $vagas_txt   = "Últimas $vagas_disp vagas";
+                $vagas_txt   = "Ultimas $vagas_disp vagas";
             } else {
                 $vagas_class = 'ok';
                 $vagas_txt   = "$vagas_disp vagas";
@@ -159,9 +158,9 @@ require_once __DIR__ . '/../includes/header.php';
                 </span>
                 <h3 class="event-card__title"><?= e($ev['titulo']) ?></h3>
                 <div class="event-card__meta">
-                    <div class="event-card__meta-row">📅 <?= formatDate($ev['data_inicio']) ?></div>
-                    <div class="event-card__meta-row">📍 <?= e($ev['local']) ?></div>
-                    <div class="event-card__meta-row">👤 <?= e($ev['org_nome']) ?></div>
+                    <div class="event-card__meta-row"><?= formatDate($ev['data_inicio']) ?></div>
+                    <div class="event-card__meta-row"><?= e($ev['local']) ?></div>
+                    <div class="event-card__meta-row"><?= e($ev['org_nome']) ?></div>
                 </div>
                 <div class="event-card__footer">
                     <span class="vagas-badge vagas-badge--<?= $vagas_class ?>"><?= $vagas_txt ?></span>
@@ -180,7 +179,7 @@ require_once __DIR__ . '/../includes/header.php';
         $url_params = $_GET;
         ?>
         <a href="?<?= http_build_query(array_merge($url_params, ['page' => $pagina - 1])) ?>"
-           class="page-btn <?= $pagina <= 1 ? 'disabled' : '' ?>">‹</a>
+           class="page-btn <?= $pagina <= 1 ? 'disabled' : '' ?>">&lsaquo;</a>
 
         <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
         <a href="?<?= http_build_query(array_merge($url_params, ['page' => $i])) ?>"
@@ -188,7 +187,7 @@ require_once __DIR__ . '/../includes/header.php';
         <?php endfor; ?>
 
         <a href="?<?= http_build_query(array_merge($url_params, ['page' => $pagina + 1])) ?>"
-           class="page-btn <?= $pagina >= $total_paginas ? 'disabled' : '' ?>">›</a>
+           class="page-btn <?= $pagina >= $total_paginas ? 'disabled' : '' ?>">&rsaquo;</a>
     </div>
     <?php endif; ?>
     <?php endif; ?>

@@ -46,7 +46,7 @@ function getDB(): PDO {
 
     // Se a tabela 'utilizadores' não existe, significa que a BD é nova → inicializar
     if (!$existe) {
-        _criarTabelas($pdo);    // Cria as tabelas
+        _criarTabelas($pdo);     // Cria as tabelas
         _inserirDadosDemo($pdo); // Insere dados de exemplo
     }
 
@@ -58,11 +58,11 @@ function getDB(): PDO {
 // Cria todas as tabelas da base de dados (chamada apenas na primeira execução)
 function _criarTabelas(PDO $pdo): void {
 
-    // Tabela de categorias dos eventos (ex: Música, Tecnologia, Desporto...)
+    // Tabela de categorias dos eventos (ex: Musica, Tecnologia, Desporto...)
     $pdo->exec("CREATE TABLE IF NOT EXISTS categorias_evento (
         id        INTEGER PRIMARY KEY AUTOINCREMENT, -- Identificador único (gerado automaticamente)
         nome      TEXT NOT NULL UNIQUE,              -- Nome da categoria (não pode repetir)
-        icone     TEXT NOT NULL DEFAULT '🎉',        -- Emoji representativo da categoria
+        icone     TEXT NOT NULL DEFAULT '',          -- Abreviatura ou texto representativo
         cor       TEXT NOT NULL DEFAULT '#6366f1',   -- Cor HEX para estilizar a categoria
         criado_em DATETIME DEFAULT CURRENT_TIMESTAMP -- Data/hora de criação (automática)
     )");
@@ -94,7 +94,7 @@ function _criarTabelas(PDO $pdo): void {
         estado         TEXT NOT NULL DEFAULT 'ativo'
                            CHECK(estado IN ('ativo','cancelado','encerrado')),
         criado_em      DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (organizador_id) REFERENCES utilizadores(id) ON DELETE CASCADE, -- Apagar eventos se o user for apagado
+        FOREIGN KEY (organizador_id) REFERENCES utilizadores(id) ON DELETE CASCADE,
         FOREIGN KEY (categoria_id)   REFERENCES categorias_evento(id)
     )");
 
@@ -118,14 +118,14 @@ function _inserirDadosDemo(PDO $pdo): void {
 
     // Array com as categorias iniciais: [nome, icone, cor]
     $categorias = [
-        ['Música',             '🎵', '#7c3aed'],
-        ['Tecnologia',         '💻', '#2563eb'],
-        ['Cultura & Arte',     '🎨', '#db2777'],
-        ['Desporto',           '⚽', '#16a34a'],
-        ['Comida & Lifestyle', '🍽️', '#ea580c'],
-        ['Conferência',        '🎤', '#0891b2'],
-        ['Universitário',      '🎓', '#7c3aed'],
-        ['Outros',             '🎉', '#64748b'],
+        ['Musica',             'MUS', '#7c3aed'],
+        ['Tecnologia',         'TEC', '#2563eb'],
+        ['Cultura e Arte',     'ART', '#db2777'],
+        ['Desporto',           'DES', '#16a34a'],
+        ['Comida e Lifestyle', 'COM', '#ea580c'],
+        ['Conferencia',        'CON', '#0891b2'],
+        ['Universitario',      'UNI', '#7c3aed'],
+        ['Outros',             'OUT', '#64748b'],
     ];
 
     // Prepara o statement uma vez e executa-o para cada categoria
@@ -141,7 +141,7 @@ function _inserirDadosDemo(PDO $pdo): void {
 
     // Criar conta de organizador de exemplo
     $pdo->prepare("INSERT OR IGNORE INTO utilizadores (nome, email, password_hash, papel) VALUES (?, ?, ?, ?)")
-        ->execute(['João Organizador', 'org@eventflow.pt',   password_hash('org123',   PASSWORD_BCRYPT), 'organizador']);
+        ->execute(['Joao Organizador', 'org@eventflow.pt',   password_hash('org123',   PASSWORD_BCRYPT), 'organizador']);
 
     // Criar conta de participante de exemplo
     $pdo->prepare("INSERT OR IGNORE INTO utilizadores (nome, email, password_hash, papel) VALUES (?, ?, ?, ?)")
@@ -150,8 +150,8 @@ function _inserirDadosDemo(PDO $pdo): void {
     // Obter os IDs do organizador e das categorias para criar eventos de demonstração
     $org  = $pdo->query("SELECT id FROM utilizadores WHERE email='org@eventflow.pt'")->fetch();
     $tec  = $pdo->query("SELECT id FROM categorias_evento WHERE nome='Tecnologia'")->fetch();
-    $mus  = $pdo->query("SELECT id FROM categorias_evento WHERE nome='Música'")->fetch();
-    $conf = $pdo->query("SELECT id FROM categorias_evento WHERE nome='Conferência'")->fetch();
+    $mus  = $pdo->query("SELECT id FROM categorias_evento WHERE nome='Musica'")->fetch();
+    $conf = $pdo->query("SELECT id FROM categorias_evento WHERE nome='Conferencia'")->fetch();
 
     // Só cria eventos se o organizador foi encontrado
     if ($org) {
@@ -162,26 +162,26 @@ function _inserirDadosDemo(PDO $pdo): void {
 
         // Evento 1: Summit de PHP
         $ins->execute([$org['id'], $tec['id'],
-            'PHP & Web Dev Summit 2026',
+            'PHP e Web Dev Summit 2026',
             'O maior encontro de programadores PHP em Portugal. Workshops, talks e networking!',
-            'Porto, Casa da Música', '2026-07-15 09:00', '2026-07-15 18:00', 200]);
+            'Porto, Casa da Musica', '2026-07-15 09:00', '2026-07-15 18:00', 200]);
 
-        // Evento 2: Festival de música
+        // Evento 2: Festival de musica
         $ins->execute([$org['id'], $mus['id'],
             'Festival Sunset Porto',
-            'Um festival de música ao pôr do sol com os melhores DJs nacionais e internacionais.',
-            'Porto, Jardins do Palácio de Cristal', '2026-08-10 17:00', '2026-08-10 23:59', 500]);
+            'Um festival de musica ao por do sol com os melhores DJs nacionais e internacionais.',
+            'Porto, Jardins do Palacio de Cristal', '2026-08-10 17:00', '2026-08-10 23:59', 500]);
 
-        // Evento 3: Conferência de IA
+        // Evento 3: Conferencia de IA
         $ins->execute([$org['id'], $conf['id'],
-            'TechTalks: IA & Futuro',
-            'Conferência sobre Inteligência Artificial e o futuro do trabalho. Oradores de topo.',
+            'TechTalks: IA e Futuro',
+            'Conferencia sobre Inteligencia Artificial e o futuro do trabalho. Oradores de topo.',
             'Lisboa, Centro de Congressos', '2026-09-05 10:00', '2026-09-05 17:00', 150]);
 
         // Evento 4: Hackathon
         $ins->execute([$org['id'], $tec['id'],
             'Hackathon 48h Lisboa',
-            '48 horas para criar, inovar e ganhar prémios. Sozinho ou em equipa, venha hackear!',
+            '48 horas para criar, inovar e ganhar premios. Sozinho ou em equipa, venha hackear!',
             'Lisboa, Hub Criativo Beato', '2026-10-01 08:00', '2026-10-03 08:00', 80]);
     }
 }

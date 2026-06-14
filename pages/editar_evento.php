@@ -4,10 +4,8 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/helpers.php';
 
-// Só organizadores e admins podem editar eventos
 requireOrganizador();
 
-// Lê o ID do evento da URL (ex: /editar_evento.php?id=3)
 $id = (int)($_GET['id'] ?? 0);
 $db = getDB();
 
@@ -16,40 +14,34 @@ $stmt = $db->prepare("SELECT * FROM eventos WHERE id = ?");
 $stmt->execute([$id]);
 $ev = $stmt->fetch();
 
-// Se o evento não existir, redireciona para 404
 if (!$ev) {
     header('Location: /errors/404.php');
     exit;
 }
 
 // Verifica que o utilizador é o dono do evento OU é admin
-// (um organizador não pode editar eventos de outro organizador)
 if (!isAdmin() && $ev['organizador_id'] !== getCurrentUserId()) {
     header('Location: /errors/403.php');
     exit;
 }
 
-// Obtém as categorias para preencher o select
 $categorias = $db->query("SELECT * FROM categorias_evento ORDER BY nome")->fetchAll();
 $erros      = [];
 
-// Preenche as variáveis com os dados atuais do evento (para mostrar no formulário)
+// Preenche as variáveis com os dados atuais do evento
 $titulo       = $ev['titulo'];
 $descricao    = $ev['descricao'];
 $local        = $ev['local'];
-// str_replace converte o espaço entre data e hora (ex: "2026-07-15 09:00" → "2026-07-15T09:00")
-// necessário porque o input datetime-local usa o formato com 'T'
+// str_replace converte "2026-07-15 09:00" → "2026-07-15T09:00" para o input datetime-local
 $data_inicio  = str_replace(' ', 'T', $ev['data_inicio']);
 $data_fim     = str_replace(' ', 'T', $ev['data_fim'] ?? '');
 $vagas        = $ev['vagas'];
 $categoria_id = $ev['categoria_id'];
 $estado       = $ev['estado'];
 
-// Verifica se o formulário foi submetido
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    validateCsrf(); // Valida token CSRF
+    validateCsrf();
 
-    // Lê os novos dados do formulário
     $titulo       = trim($_POST['titulo'] ?? '');
     $descricao    = trim($_POST['descricao'] ?? '');
     $local        = trim($_POST['local'] ?? '');
@@ -59,33 +51,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $categoria_id = (int)($_POST['categoria_id'] ?? 0);
     $estado       = $_POST['estado'] ?? 'ativo';
 
-    // Validações
-    if (strlen($titulo) < 3)     $erros['titulo']    = 'Título demasiado curto.';
-    if (strlen($descricao) < 10) $erros['descricao'] = 'Descrição demasiado curta.';
-    if (empty($local))           $erros['local']     = 'Local obrigatório.';
+    if (strlen($titulo) < 3)     $erros['titulo']    = 'Titulo demasiado curto.';
+    if (strlen($descricao) < 10) $erros['descricao'] = 'Descricao demasiado curta.';
+    if (empty($local))           $erros['local']     = 'Local obrigatorio.';
     if ($vagas < 1)              $erros['vagas']     = 'Vagas devem ser pelo menos 1.';
 
-    // --- Processamento de nova imagem (se foi carregada) ---
-    $imagem = $ev['imagem']; // Mantém a imagem atual por defeito
+    // Processamento de nova imagem (mantém a atual se não for carregada nova)
+    $imagem = $ev['imagem'];
 
     if (!empty($_FILES['imagem']['name']) && $_FILES['imagem']['error'] === UPLOAD_ERR_OK) {
         $finfo = new finfo(FILEINFO_MIME_TYPE);
-        $mime  = $finfo->file($_FILES['imagem']['tmp_name']); // Verifica o tipo real do ficheiro
+        $mime  = $finfo->file($_FILES['imagem']['tmp_name']);
 
         if (!in_array($mime, ALLOWED_IMAGE_TYPES)) {
-            $erros['imagem'] = 'Tipo de ficheiro não permitido. Use JPEG, PNG, WebP ou GIF.';
+            $erros['imagem'] = 'Tipo de ficheiro nao permitido. Use JPEG, PNG, WebP ou GIF.';
         } elseif ($_FILES['imagem']['size'] > UPLOAD_MAX_SIZE) {
-            $erros['imagem'] = 'Ficheiro demasiado grande. Máximo 5MB.';
+            $erros['imagem'] = 'Ficheiro demasiado grande. Maximo 5MB.';
         } else {
-            // Gera nome único e move o ficheiro para a pasta de uploads
             $ext    = pathinfo($_FILES['imagem']['name'], PATHINFO_EXTENSION);
             $nome   = uniqid('ev_') . '.' . strtolower($ext);
             move_uploaded_file($_FILES['imagem']['tmp_name'], UPLOAD_DIR . $nome);
-            $imagem = $nome; // Substitui a imagem anterior
+            $imagem = $nome;
         }
     }
 
-    // Se não há erros, atualiza o evento na BD
     if (empty($erros)) {
         $db->prepare("
             UPDATE eventos
@@ -95,9 +84,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ")->execute([
             $titulo, $descricao, $local,
             $data_inicio,
-            $data_fim ?: null, // Converte string vazia para null
+            $data_fim ?: null,
             $vagas, $imagem, $categoria_id, $estado,
-            $id // Condição WHERE: só atualiza este evento
+            $id
         ]);
 
         redirectWith("/pages/evento.php?id=$id", 'success', 'Evento atualizado!');
@@ -109,46 +98,40 @@ require_once __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="container" style="padding:48px 24px; max-width:700px">
-    <h1 style="font-size:2rem; margin-bottom:8px">✏️ Editar evento</h1>
+    <h1 style="font-size:2rem; margin-bottom:8px">Editar evento</h1>
     <p style="color:var(--clr-muted); margin-bottom:32px"><?= e($ev['titulo']) ?></p>
 
-    <!-- Formulário de edição — enctype necessário para upload de imagem -->
     <form method="POST" enctype="multipart/form-data"
           style="background:var(--clr-bg2);border:1px solid var(--clr-border);border-radius:20px;padding:36px">
         <input type="hidden" name="csrf_token" value="<?= csrfToken() ?>">
 
-        <!-- Campo: Título (pré-preenchido com o valor atual) -->
         <div class="form-group">
-            <label>Título *</label>
+            <label>Titulo *</label>
             <input type="text" name="titulo" class="form-control" value="<?= e($titulo) ?>" required>
             <?php if (!empty($erros['titulo'])): ?>
             <span class="form-error"><?= e($erros['titulo']) ?></span>
             <?php endif; ?>
         </div>
 
-        <!-- Campo: Descrição -->
         <div class="form-group">
-            <label>Descrição *</label>
+            <label>Descricao *</label>
             <textarea name="descricao" class="form-control" rows="5" required><?= e($descricao) ?></textarea>
             <?php if (!empty($erros['descricao'])): ?>
             <span class="form-error"><?= e($erros['descricao']) ?></span>
             <?php endif; ?>
         </div>
 
-        <!-- Campo: Categoria -->
         <div class="form-group">
             <label>Categoria</label>
             <select name="categoria_id" class="form-control">
                 <?php foreach ($categorias as $cat): ?>
-                <!-- Marca como 'selected' a categoria atual do evento -->
                 <option value="<?= $cat['id'] ?>" <?= $categoria_id == $cat['id'] ? 'selected' : '' ?>>
-                    <?= $cat['icone'] ?> <?= e($cat['nome']) ?>
+                    <?= e($cat['icone']) ?> <?= e($cat['nome']) ?>
                 </option>
                 <?php endforeach; ?>
             </select>
         </div>
 
-        <!-- Campo: Local -->
         <div class="form-group">
             <label>Local *</label>
             <input type="text" name="local" class="form-control" value="<?= e($local) ?>" required>
@@ -157,10 +140,9 @@ require_once __DIR__ . '/../includes/header.php';
             <?php endif; ?>
         </div>
 
-        <!-- Campos: Datas em grid lado a lado -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
             <div class="form-group">
-                <label>Data início *</label>
+                <label>Data inicio *</label>
                 <input type="datetime-local" name="data_inicio" class="form-control"
                        value="<?= e($data_inicio) ?>" required>
             </div>
@@ -171,7 +153,6 @@ require_once __DIR__ . '/../includes/header.php';
             </div>
         </div>
 
-        <!-- Campos: Vagas e Estado em grid -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
             <div class="form-group">
                 <label>Vagas *</label>
@@ -182,22 +163,18 @@ require_once __DIR__ . '/../includes/header.php';
             </div>
             <div class="form-group">
                 <label>Estado</label>
-                <!-- O admin/organizador pode mudar o estado do evento diretamente -->
                 <select name="estado" class="form-control">
-                    <option value="ativo"     <?= $estado === 'ativo'     ? 'selected' : '' ?>>✅ Ativo</option>
-                    <option value="encerrado" <?= $estado === 'encerrado' ? 'selected' : '' ?>>🔒 Encerrado</option>
-                    <option value="cancelado" <?= $estado === 'cancelado' ? 'selected' : '' ?>>❌ Cancelado</option>
+                    <option value="ativo"     <?= $estado === 'ativo'     ? 'selected' : '' ?>>Ativo</option>
+                    <option value="encerrado" <?= $estado === 'encerrado' ? 'selected' : '' ?>>Encerrado</option>
+                    <option value="cancelado" <?= $estado === 'cancelado' ? 'selected' : '' ?>>Cancelado</option>
                 </select>
             </div>
         </div>
 
-        <!-- Campo: Imagem (opcional — mantém a atual se não carregar nova) -->
         <div class="form-group">
-            <!-- Mostra o nome da imagem atual, se existir -->
             <label>Imagem <?php if ($ev['imagem']): ?>(atual: <?= e($ev['imagem']) ?>)<?php endif; ?></label>
             <div class="file-input-wrap" onclick="document.getElementById('imagem').click()">
                 <input type="file" id="imagem" name="imagem" accept="image/*">
-                <div class="upload-icon">🖼️</div>
                 <div class="upload-label">Clica para substituir a imagem</div>
                 <div class="upload-preview"></div>
             </div>
@@ -206,17 +183,16 @@ require_once __DIR__ . '/../includes/header.php';
             <?php endif; ?>
         </div>
 
-        <!-- Botões de ação: guardar, cancelar, e apagar (em formulário separado) -->
         <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-            <button type="submit" class="btn btn--primary">💾 Guardar alterações</button>
+            <button type="submit" class="btn btn--primary">Guardar alteracoes</button>
             <a href="/pages/evento.php?id=<?= $id ?>" class="btn btn--ghost">Cancelar</a>
 
-            <!-- Formulário separado para apagar (POST próprio para o apagar_evento.php) -->
+            <!-- Formulário separado para apagar o evento -->
             <form method="POST" action="/pages/apagar_evento.php" style="margin:0"
                   onsubmit="return confirm('Apagar este evento permanentemente?')">
                 <input type="hidden" name="csrf_token" value="<?= csrfToken() ?>">
                 <input type="hidden" name="id" value="<?= $id ?>">
-                <button type="submit" class="btn btn--danger">🗑️ Apagar</button>
+                <button type="submit" class="btn btn--danger">Apagar</button>
             </form>
         </div>
     </form>

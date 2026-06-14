@@ -4,25 +4,24 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/helpers.php';
 
-// Garante que o utilizador está autenticado; redireciona para login se não estiver
+// Garante que o utilizador está autenticado
 requireLogin();
 
-// Este ficheiro só aceita pedidos POST (não deve ser acedido diretamente pelo browser)
+// Este ficheiro só aceita pedidos POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: /pages/eventos.php');
     exit;
 }
 
-// Valida o token CSRF para garantir que o pedido vem do nosso formulário
+// Valida o token CSRF
 validateCsrf();
 
-// Lê os dados enviados pelo formulário
-$evento_id = (int)($_POST['evento_id'] ?? 0); // (int) garante que é um número inteiro
-$action    = $_POST['action'] ?? '';          // 'inscrever' ou 'cancelar'
+$evento_id = (int)($_POST['evento_id'] ?? 0);
+$action    = $_POST['action'] ?? '';
 
 // Valida que o evento_id é válido e que a ação é reconhecida
 if (!$evento_id || !in_array($action, ['inscrever', 'cancelar'])) {
-    redirectWith('/pages/eventos.php', 'error', 'Pedido inválido.');
+    redirectWith('/pages/eventos.php', 'error', 'Pedido invalido.');
 }
 
 $db = getDB();
@@ -32,54 +31,51 @@ $stmt = $db->prepare("SELECT * FROM eventos WHERE id = ? AND estado = 'ativo'");
 $stmt->execute([$evento_id]);
 $evento = $stmt->fetch();
 
-// Se o evento não existir ou não estiver ativo, redireciona com erro
 if (!$evento) {
-    redirectWith('/pages/eventos.php', 'error', 'Evento não encontrado ou inativo.');
+    redirectWith('/pages/eventos.php', 'error', 'Evento nao encontrado ou inativo.');
 }
 
-// Obtém o ID do utilizador autenticado e verifica se já está inscrito
 $user_id   = getCurrentUserId();
-$inscricao = isInscrito($user_id, $evento_id); // Devolve a linha da inscrição ou null
+$inscricao = isInscrito($user_id, $evento_id);
 
 
-// ===================== AÇÃO: INSCREVER =====================
+// ===================== ACAO: INSCREVER =====================
 if ($action === 'inscrever') {
 
-    // Verifica se ainda há vagas disponíveis no evento
+    // Verifica se ainda há vagas disponíveis
     if (vagasDisponiveis($evento) <= 0) {
-        redirectWith("/pages/evento.php?id=$evento_id", 'error', 'Não há vagas disponíveis.');
+        redirectWith("/pages/evento.php?id=$evento_id", 'error', 'Nao ha vagas disponiveis.');
     }
 
-    // Verifica se o utilizador já tem uma inscrição confirmada neste evento
+    // Verifica se já está inscrito com inscrição confirmada
     if ($inscricao && $inscricao['estado'] === 'confirmada') {
-        redirectWith("/pages/evento.php?id=$evento_id", 'error', 'Já estás inscrito neste evento.');
+        redirectWith("/pages/evento.php?id=$evento_id", 'error', 'Ja estas inscrito neste evento.');
     }
 
     if ($inscricao) {
-        // Já existe uma inscrição (mas está cancelada) → reativa-a alterando o estado
+        // Reativa inscrição cancelada
         $db->prepare("UPDATE inscricoes SET estado = 'confirmada' WHERE id = ?")
            ->execute([$inscricao['id']]);
     } else {
-        // Não existe nenhuma inscrição → cria uma nova
+        // Cria nova inscrição
         $db->prepare("INSERT INTO inscricoes (utilizador_id, evento_id, estado) VALUES (?, ?, 'confirmada')")
            ->execute([$user_id, $evento_id]);
     }
 
-    // Redireciona para a página do evento com mensagem de sucesso
-    redirectWith("/pages/evento.php?id=$evento_id", 'success', 'Inscrição confirmada! Até breve! 🎉');
+    redirectWith("/pages/evento.php?id=$evento_id", 'success', 'Inscricao confirmada! Ate breve!');
 
 
-// ===================== AÇÃO: CANCELAR =====================
+// ===================== ACAO: CANCELAR =====================
 } else {
 
-    // Verifica se o utilizador está de facto inscrito (com inscrição ativa)
+    // Verifica se o utilizador está de facto inscrito
     if (!$inscricao || $inscricao['estado'] === 'cancelada') {
-        redirectWith("/pages/evento.php?id=$evento_id", 'error', 'Não estás inscrito neste evento.');
+        redirectWith("/pages/evento.php?id=$evento_id", 'error', 'Nao estas inscrito neste evento.');
     }
 
-    // Atualiza o estado da inscrição para 'cancelada' (não apaga o registo)
+    // Atualiza o estado da inscrição para 'cancelada'
     $db->prepare("UPDATE inscricoes SET estado = 'cancelada' WHERE id = ?")
        ->execute([$inscricao['id']]);
 
-    redirectWith("/pages/evento.php?id=$evento_id", 'success', 'Inscrição cancelada com sucesso.');
+    redirectWith("/pages/evento.php?id=$evento_id", 'success', 'Inscricao cancelada com sucesso.');
 }

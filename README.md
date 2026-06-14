@@ -1,10 +1,10 @@
-# 🎟️ EventFlow — Sistema de Gestão de Eventos
+# EventFlow — Sistema de Gestão de Eventos
 
-> Aplicação web em PHP para criação, gestão e inscrição em eventos. Inspirada no [3cket.com](https://3cket.com/pt).
+> Aplicação web em PHP para criação, gestão e inscrição em eventos.
 
 ---
 
-## 📋 Descrição do Projeto
+## Descrição do Projeto
 
 O **EventFlow** é um sistema completo de gestão de eventos desenvolvido em PHP puro com base de dados SQLite. Permite:
 
@@ -17,7 +17,7 @@ O **EventFlow** é um sistema completo de gestão de eventos desenvolvido em PHP
 
 ---
 
-## 🚀 Instalação
+## Instalação
 
 ### Pré-requisitos
 - PHP >= 8.0 com extensões: `pdo`, `pdo_sqlite`, `fileinfo`, `session`
@@ -27,7 +27,7 @@ O **EventFlow** é um sistema completo de gestão de eventos desenvolvido em PHP
 ### Passo a passo
 
 ```bash
-# 1. Clonar/extrair o projeto
+# 1. Clonar o projeto
 git clone https://github.com/diogobcosta-axe/eventflow.git
 cd eventflow
 
@@ -54,7 +54,7 @@ php -S localhost:8000
 
 ---
 
-## 👤 Contas Demo
+## Contas Demo
 
 | Papel        | Email                  | Password  |
 |-------------|------------------------|-----------|
@@ -64,7 +64,7 @@ php -S localhost:8000
 
 ---
 
-## 🗂️ Estrutura de Ficheiros
+## Estrutura de Ficheiros
 
 ```
 eventflow/
@@ -91,7 +91,6 @@ eventflow/
 │   ├── exportar_csv.php   # Export CSV de inscritos
 │   ├── perfil.php         # Editar perfil e password
 │   ├── admin.php          # Painel de administração
-│   ├── ajax_inscricao.php # AJAX: inscrever/cancelar
 │   └── ajax_presenca.php  # AJAX: marcar presença
 ├── assets/
 │   ├── css/style.css      # CSS completo com variáveis
@@ -109,7 +108,7 @@ eventflow/
 
 ---
 
-## 🗄️ Diagrama ER
+## Diagrama ER
 
 ```
 utilizadores
@@ -118,7 +117,6 @@ utilizadores
 ├── email (UNIQUE)
 ├── password_hash
 ├── papel (admin|organizador|participante)
-├── avatar
 ├── ativo
 └── criado_em
 
@@ -150,55 +148,55 @@ inscricoes
 ├── estado (confirmada|cancelada|presenca)
 └── criado_em
 
-Relações:
+Relacoes:
   utilizadores 1─────< eventos       (um org. tem muitos eventos)
-  utilizadores 1─────< inscricoes    (um user tem muitas inscrições)
-  eventos      1─────< inscricoes    (um evento tem muitas inscrições)
+  utilizadores 1─────< inscricoes    (um user tem muitas inscricoes)
+  eventos      1─────< inscricoes    (um evento tem muitas inscricoes)
   categorias   1─────< eventos       (uma categoria tem muitos eventos)
 ```
 
 ---
 
-## ✅ Requisitos Implementados
+## Requisitos Implementados
 
-### Obrigatórios
+### Obrigatorios
 - [x] PHP + HTML5 + CSS3, sem frameworks back-end
 - [x] SQLite com 4 tabelas relacionadas (utilizadores, eventos, inscricoes, categorias_evento)
-- [x] Autenticação: registo, login, logout com sessões PHP
+- [x] Autenticacao: registo, login, logout com sessoes PHP
 - [x] CRUD completo para Eventos
-- [x] Validação de formulários (servidor PHP + cliente HTML5/JS)
-- [x] Proteção SQL Injection com PDO + prepared statements
+- [x] Validacao de formularios (servidor PHP + cliente HTML5/JS)
+- [x] Protecao SQL Injection com PDO + prepared statements
 - [x] Layout responsivo com CSS Grid + Flexbox
-- [x] Separação: `config/`, `includes/`, `pages/`
-- [x] README com instruções de instalação
+- [x] Separacao: `config/`, `includes/`, `pages/`
+- [x] README com instrucoes de instalacao
 
 ### Valorizados
-- [x] Upload e gestão de imagens com validação de tipo e tamanho
-- [x] Paginação de listagens
-- [x] Pesquisa e filtros dinâmicos
+- [x] Upload e gestao de imagens com validacao de tipo e tamanho
+- [x] Paginacao de listagens
+- [x] Pesquisa e filtros dinamicos
 - [x] 3 perfis: admin, organizador, participante
-- [x] AJAX/Fetch para inscrição e marcação de presenças sem reload
-- [x] CSS próprio com variáveis CSS e design consistente
-- [x] Páginas de erro customizadas (404, 403, 500)
-- [x] Exportação de inscritos em CSV
+- [x] AJAX/Fetch para marcacao de presencas sem reload
+- [x] CSS proprio com variaveis CSS e design consistente
+- [x] Paginas de erro customizadas (404, 403, 500)
+- [x] Exportacao de inscritos em CSV
 
 ---
 
-## 🛡️ Segurança
+## Seguranca
 
 - **PDO + prepared statements** em todas as queries (sem SQL Injection)
-- **CSRF tokens** em todos os formulários POST
+- **CSRF tokens** em todos os formularios POST
 - **password_hash/verify** com bcrypt para passwords
 - **session_regenerate_id** no login
 - **htmlspecialchars** em todo o output (sem XSS)
-- **Validação de tipos MIME** para uploads
-- **Proteção de ficheiros** via `.htaccess`
+- **Validacao de tipos MIME** para uploads
+- **Protecao de ficheiros** via `.htaccess`
 
 ---
 
-## 👥 Grupo
+## Grupo
 
-- Diogo Costa — nº 050169
-- Gonçalo Coelho — nº 050083
+- Diogo Costa — n.o 050169
+- Goncalo Coelho — n.o 050083
 
-Disciplina: Programação Web · Ano letivo 2025/2026
+Disciplina: Programacao Web · Ano letivo 2025/2026

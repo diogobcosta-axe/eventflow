@@ -4,27 +4,23 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/helpers.php';
 
-// Só organizadores e admins podem criar eventos
 requireOrganizador();
 
 $db         = getDB();
-$categorias = $db->query("SELECT * FROM categorias_evento ORDER BY nome")->fetchAll(); // Lista de categorias para o select
-$erros      = []; // Array de erros de validação por campo
+$categorias = $db->query("SELECT * FROM categorias_evento ORDER BY nome")->fetchAll();
+$erros      = [];
 
-// Valores iniciais do formulário (repreenchidos após erro de validação)
 $titulo       = '';
 $descricao    = '';
 $local        = '';
 $data_inicio  = '';
 $data_fim     = '';
-$vagas        = 50;  // Valor padrão sugerido
+$vagas        = 50;
 $categoria_id = 0;
 
-// Verifica se o formulário foi submetido
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    validateCsrf(); // Valida token CSRF antes de processar
+    validateCsrf();
 
-    // Lê e limpa os dados do formulário
     $titulo       = trim($_POST['titulo'] ?? '');
     $descricao    = trim($_POST['descricao'] ?? '');
     $local        = trim($_POST['local'] ?? '');
@@ -33,42 +29,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $vagas        = (int)($_POST['vagas'] ?? 0);
     $categoria_id = (int)($_POST['categoria_id'] ?? 0);
 
-    // --- Validações no servidor ---
-    if (strlen($titulo) < 3)     $erros['titulo']       = 'Título deve ter pelo menos 3 caracteres.';
-    if (strlen($descricao) < 10) $erros['descricao']    = 'Descrição deve ter pelo menos 10 caracteres.';
-    if (empty($local))           $erros['local']         = 'Local obrigatório.';
-    if (empty($data_inicio))     $erros['data_inicio']   = 'Data de início obrigatória.';
-    if ($vagas < 1)              $erros['vagas']         = 'Número de vagas deve ser pelo menos 1.';
+    // Validações no servidor
+    if (strlen($titulo) < 3)     $erros['titulo']       = 'Titulo deve ter pelo menos 3 caracteres.';
+    if (strlen($descricao) < 10) $erros['descricao']    = 'Descricao deve ter pelo menos 10 caracteres.';
+    if (empty($local))           $erros['local']         = 'Local obrigatorio.';
+    if (empty($data_inicio))     $erros['data_inicio']   = 'Data de inicio obrigatoria.';
+    if ($vagas < 1)              $erros['vagas']         = 'Numero de vagas deve ser pelo menos 1.';
     if (!$categoria_id)          $erros['categoria_id']  = 'Seleciona uma categoria.';
 
-    // --- Processamento do upload de imagem ---
-    $imagem = null; // Sem imagem por defeito
-
-    // Verifica se foi enviado um ficheiro sem erro de upload
+    // Processamento do upload de imagem
+    $imagem = null;
     if (!empty($_FILES['imagem']['name']) && $_FILES['imagem']['error'] === UPLOAD_ERR_OK) {
-
-        // finfo detecta o tipo MIME real do ficheiro (não confia na extensão)
         $finfo = new finfo(FILEINFO_MIME_TYPE);
-        $mime  = $finfo->file($_FILES['imagem']['tmp_name']); // Analisa o ficheiro temporário
+        $mime  = $finfo->file($_FILES['imagem']['tmp_name']);
 
         if (!in_array($mime, ALLOWED_IMAGE_TYPES)) {
-            // Tipo de ficheiro não permitido (ex: PDF, EXE, etc.)
-            $erros['imagem'] = 'Tipo de ficheiro não permitido. Use JPEG, PNG, WebP ou GIF.';
+            $erros['imagem'] = 'Tipo de ficheiro nao permitido. Use JPEG, PNG, WebP ou GIF.';
         } elseif ($_FILES['imagem']['size'] > UPLOAD_MAX_SIZE) {
-            // Ficheiro maior que 5MB
-            $erros['imagem'] = 'Ficheiro demasiado grande. Máximo 5MB.';
+            $erros['imagem'] = 'Ficheiro demasiado grande. Maximo 5MB.';
         } else {
-            // Tudo válido: gera um nome único para evitar conflitos
-            $ext  = pathinfo($_FILES['imagem']['name'], PATHINFO_EXTENSION); // Extensão original (ex: jpg)
-            $nome = uniqid('ev_') . '.' . strtolower($ext); // ex: ev_6789abc.jpg
-
-            // Move o ficheiro da pasta temporária para a pasta de uploads
+            $ext    = pathinfo($_FILES['imagem']['name'], PATHINFO_EXTENSION);
+            $nome   = uniqid('ev_') . '.' . strtolower($ext);
             move_uploaded_file($_FILES['imagem']['tmp_name'], UPLOAD_DIR . $nome);
-            $imagem = $nome; // Guarda o nome para inserir na BD
+            $imagem = $nome;
         }
     }
 
-    // Se não há erros, guarda o evento na base de dados
     if (empty($erros)) {
         $db->prepare("
             INSERT INTO eventos (titulo, descricao, local, data_inicio, data_fim, vagas, imagem, organizador_id, categoria_id)
@@ -76,13 +62,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ")->execute([
             $titulo, $descricao, $local,
             $data_inicio,
-            $data_fim ?: null,  // ?: null converte string vazia para null (campo opcional)
+            $data_fim ?: null,
             $vagas, $imagem,
-            getCurrentUserId(), // ID do utilizador autenticado (o organizador)
+            getCurrentUserId(),
             $categoria_id
         ]);
 
-        // Obtém o ID do evento recém-criado e redireciona para a sua página
         $novo_id = $db->lastInsertId();
         redirectWith("/pages/evento.php?id=$novo_id", 'success', 'Evento criado com sucesso!');
     }
@@ -94,29 +79,25 @@ require_once __DIR__ . '/../includes/header.php';
 
 <div class="container" style="padding:48px 24px; max-width:700px">
     <div style="margin-bottom:32px">
-        <h1 style="font-size:2rem">✨ Criar novo evento</h1>
+        <h1 style="font-size:2rem">Criar novo evento</h1>
         <p style="color:var(--clr-muted)">Preenche os detalhes do teu evento</p>
     </div>
 
-    <!-- Formulário de criação — enctype necessário para upload de ficheiros -->
     <form method="POST" enctype="multipart/form-data"
           style="background:var(--clr-bg2);border:1px solid var(--clr-border);border-radius:20px;padding:36px">
         <input type="hidden" name="csrf_token" value="<?= csrfToken() ?>">
 
-        <!-- Campo: Título -->
         <div class="form-group">
-            <label for="titulo">Título do evento *</label>
+            <label for="titulo">Titulo do evento *</label>
             <input type="text" id="titulo" name="titulo" class="form-control"
-                   placeholder="Ex: Festival de Música do Porto 2026"
-                   value="<?= e($titulo) ?>" required>
+                   placeholder="Ex: Festival de Musica do Porto 2026" value="<?= e($titulo) ?>" required>
             <?php if (!empty($erros['titulo'])): ?>
             <span class="form-error"><?= e($erros['titulo']) ?></span>
             <?php endif; ?>
         </div>
 
-        <!-- Campo: Descrição (textarea de 5 linhas) -->
         <div class="form-group">
-            <label for="descricao">Descrição *</label>
+            <label for="descricao">Descricao *</label>
             <textarea id="descricao" name="descricao" class="form-control" rows="5"
                       placeholder="Descreve o teu evento em detalhe..." required><?= e($descricao) ?></textarea>
             <?php if (!empty($erros['descricao'])): ?>
@@ -124,14 +105,13 @@ require_once __DIR__ . '/../includes/header.php';
             <?php endif; ?>
         </div>
 
-        <!-- Campo: Categoria (select com todas as categorias da BD) -->
         <div class="form-group">
             <label for="categoria_id">Categoria *</label>
             <select id="categoria_id" name="categoria_id" class="form-control" required>
                 <option value="">Seleciona uma categoria</option>
                 <?php foreach ($categorias as $cat): ?>
                 <option value="<?= $cat['id'] ?>" <?= $categoria_id == $cat['id'] ? 'selected' : '' ?>>
-                    <?= $cat['icone'] ?> <?= e($cat['nome']) ?>
+                    <?= e($cat['icone']) ?> <?= e($cat['nome']) ?>
                 </option>
                 <?php endforeach; ?>
             </select>
@@ -140,22 +120,18 @@ require_once __DIR__ . '/../includes/header.php';
             <?php endif; ?>
         </div>
 
-        <!-- Campo: Local -->
         <div class="form-group">
             <label for="local">Local *</label>
             <input type="text" id="local" name="local" class="form-control"
-                   placeholder="Ex: Parque da Cidade, Porto"
-                   value="<?= e($local) ?>" required>
+                   placeholder="Ex: Parque da Cidade, Porto" value="<?= e($local) ?>" required>
             <?php if (!empty($erros['local'])): ?>
             <span class="form-error"><?= e($erros['local']) ?></span>
             <?php endif; ?>
         </div>
 
-        <!-- Campos: Datas (em grid lado a lado) -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
             <div class="form-group">
-                <label for="data_inicio">Data de início *</label>
-                <!-- datetime-local permite selecionar data e hora no mesmo campo -->
+                <label for="data_inicio">Data de inicio *</label>
                 <input type="datetime-local" id="data_inicio" name="data_inicio" class="form-control"
                        value="<?= e($data_inicio) ?>" required>
                 <?php if (!empty($erros['data_inicio'])): ?>
@@ -164,15 +140,13 @@ require_once __DIR__ . '/../includes/header.php';
             </div>
             <div class="form-group">
                 <label for="data_fim">Data de fim</label>
-                <!-- Campo opcional: sem 'required' -->
                 <input type="datetime-local" id="data_fim" name="data_fim" class="form-control"
                        value="<?= e($data_fim) ?>">
             </div>
         </div>
 
-        <!-- Campo: Vagas -->
         <div class="form-group">
-            <label for="vagas">Número de vagas *</label>
+            <label for="vagas">Numero de vagas *</label>
             <input type="number" id="vagas" name="vagas" class="form-control"
                    min="1" value="<?= e($vagas) ?>" required>
             <?php if (!empty($erros['vagas'])): ?>
@@ -180,17 +154,12 @@ require_once __DIR__ . '/../includes/header.php';
             <?php endif; ?>
         </div>
 
-        <!-- Campo: Imagem (upload com pré-visualização via JavaScript) -->
         <div class="form-group">
             <label>Imagem do evento</label>
-            <!-- Clicar no wrapper abre o seletor de ficheiros -->
             <div class="file-input-wrap" onclick="document.getElementById('imagem').click()">
-                <!-- Input file escondido (o estilo personalizado é no wrapper) -->
                 <input type="file" id="imagem" name="imagem" accept="image/*">
-                <div class="upload-icon">🖼️</div>
                 <div class="upload-label">Clica para carregar uma imagem</div>
-                <p style="font-size:.78rem;color:var(--clr-muted);margin-top:4px">JPEG, PNG, WebP ou GIF · Máx. 5MB</p>
-                <!-- Div onde o JavaScript mostra a pré-visualização da imagem -->
+                <p style="font-size:.78rem;color:var(--clr-muted);margin-top:4px">JPEG, PNG, WebP ou GIF &middot; Max. 5MB</p>
                 <div class="upload-preview"></div>
             </div>
             <?php if (!empty($erros['imagem'])): ?>
@@ -198,9 +167,8 @@ require_once __DIR__ . '/../includes/header.php';
             <?php endif; ?>
         </div>
 
-        <!-- Botões de submissão e cancelamento -->
         <div style="display:flex;gap:12px;margin-top:8px">
-            <button type="submit" class="btn btn--primary btn--lg">✨ Publicar evento</button>
+            <button type="submit" class="btn btn--primary btn--lg">Publicar evento</button>
             <a href="/pages/meus_eventos.php" class="btn btn--ghost btn--lg">Cancelar</a>
         </div>
     </form>
