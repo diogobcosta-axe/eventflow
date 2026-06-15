@@ -104,6 +104,61 @@ function showToast(msg, tipo) {
 
 
 // ============================================================
+// VALIDAÇÃO CLIENT-SIDE DOS FORMULÁRIOS DE EVENTO
+// Aplicada nas páginas criar_evento.php e editar_evento.php
+// Completa a validação do servidor — não a substitui
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    var form = document.querySelector('form[method="POST"]');
+
+    // Só ativa se o formulário tiver o campo "titulo" (páginas de evento)
+    if (!form || !form.querySelector('[name="titulo"]')) return;
+
+    form.addEventListener('submit', function(e) {
+        var valido = true;
+
+        // Remove erros inline anteriores adicionados por este script
+        form.querySelectorAll('.form-error--js').forEach(function(el) { el.remove(); });
+
+        // Valida o título: mínimo 3 caracteres
+        var titulo = form.querySelector('[name="titulo"]');
+        if (titulo && titulo.value.trim().length < 3) {
+            mostrarErroInline(titulo, 'O titulo deve ter pelo menos 3 caracteres.');
+            valido = false;
+        }
+
+        // Valida a data de início: não pode ser no passado
+        var dataInicio = form.querySelector('[name="data_inicio"]');
+        if (dataInicio && dataInicio.value) {
+            if (new Date(dataInicio.value) < new Date()) {
+                mostrarErroInline(dataInicio, 'A data de inicio nao pode ser no passado.');
+                valido = false;
+            }
+        }
+
+        // Valida as vagas: tem de ser um número positivo
+        var vagas = form.querySelector('[name="vagas"]');
+        if (vagas && parseInt(vagas.value, 10) < 1) {
+            mostrarErroInline(vagas, 'O numero de vagas deve ser pelo menos 1.');
+            valido = false;
+        }
+
+        // Cancela o submit se alguma validação falhou
+        if (!valido) e.preventDefault();
+    });
+});
+
+// Cria e insere uma mensagem de erro inline por baixo do campo
+function mostrarErroInline(campo, mensagem) {
+    var erro = document.createElement('span');
+    erro.className = 'form-error form-error--js'; // form-error já tem estilo no CSS
+    erro.textContent = mensagem;
+    campo.parentNode.appendChild(erro);
+    campo.focus(); // Leva o foco para o primeiro campo com erro
+}
+
+
+// ============================================================
 // MARCAR PRESENÇA (AJAX) — chamado na página de presenças
 // Envia um pedido ao servidor sem recarregar a página inteira
 // ============================================================
