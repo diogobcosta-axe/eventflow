@@ -108,6 +108,35 @@ eventflow/
 
 ---
 
+## Arquitectura do Projeto
+
+O projeto segue uma arquitectura simples em camadas, sem frameworks, usando PHP puro:
+
+**`config/`** — Configuração central da aplicação. `database.php` gere a ligação PDO ao SQLite e cria as tabelas automaticamente na primeira execução (padrão Singleton). `app.php` define constantes globais, configura sessões seguras e o timezone.
+
+**`includes/`** — Componentes partilhados entre todas as páginas. `header.php` e `footer.php` formam o layout base (navbar + scripts). `auth.php` expõe funções de autenticação (`isLoggedIn`, `requireAdmin`, etc.) que protegem as páginas por perfil. `helpers.php` agrupa utilitários globais como `e()` (escape XSS), `redirectWith()` (redirect com flash message) e `csrfToken()`/`validateCsrf()` (protecção CSRF).
+
+**`pages/`** — Uma página PHP por funcionalidade. Cada ficheiro trata o seu próprio pedido POST, valida os dados no servidor com prepared statements PDO e inclui `header.php`/`footer.php` para o layout.
+
+**`assets/`** — Recursos estáticos. `css/style.css` usa variáveis CSS (`--clr-accent`, `--clr-muted`, etc.) para um tema consistente. `js/main.js` é carregado globalmente e trata comportamentos do cliente: menu mobile, flash messages, pré-visualização de imagens, validação de formulários e chamadas AJAX para marcação de presenças.
+
+**`errors/`** — Páginas de erro customizadas (404, 403, 500) definidas no `.htaccess`, com o mesmo layout do site.
+
+**Fluxo típico de um pedido:**
+```
+Browser → index.php / pages/*.php
+           ↓
+        config/app.php (sessão, timezone)
+        config/database.php (ligação PDO + criação de tabelas)
+        includes/auth.php (verificação de permissões)
+           ↓
+        Lógica PHP + queries PDO ao SQLite
+           ↓
+        includes/header.php → conteúdo HTML → includes/footer.php
+```
+
+---
+
 ## Diagrama ER
 
 ```
