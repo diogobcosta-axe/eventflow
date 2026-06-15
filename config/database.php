@@ -1,6 +1,11 @@
 <?php
 // config/database.php — Ligação à base de dados SQLite e inicialização das tabelas
 
+// Carrega configurações gerais (sessão segura, timezone, controlo de erros)
+// Deve ser o primeiro ficheiro a ser incluído para garantir que session_set_cookie_params()
+// é chamado antes de session_start() em auth.php
+require_once __DIR__ . '/app.php';
+
 // Caminho para o ficheiro SQLite (fica dentro da pasta database/)
 define('DB_PATH', __DIR__ . '/../database/eventflow.db');
 
