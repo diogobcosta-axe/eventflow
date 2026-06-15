@@ -10,8 +10,14 @@ require_once __DIR__ . '/../includes/header.php';
     <div>
         <div class="error-page__code">404</div>
         <h2 class="error-page__msg">Página não encontrada</h2>
-        <p class="error-page__sub">A página que procuras não existe ou foi removida.</p>
-        <a href="/index.php" class="btn btn--primary">← Voltar ao início</a>
+        <p class="error-page__sub">
+            A página que procuras não existe ou foi removida.<br>
+            Verifica se o endereço está correto ou volta à página inicial.
+        </p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px">
+            <button onclick="history.back()" class="btn btn--ghost">← Voltar atrás</button>
+            <a href="/index.php" class="btn btn--primary">Ir para o início</a>
+        </div>
     </div>
 </div>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
